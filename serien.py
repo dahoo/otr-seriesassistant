@@ -51,6 +51,8 @@ class SeriesAssistant(object):
                             
         helpers.add_cell_renderer(self.obj('cb_series')) 
         
+        self.obj('tv_episodes').get_selection().set_mode(gtk.SELECTION_MULTIPLE)    
+        
         self.loadSeries()        
         
         self.obj('tv_episodes').set_cursor(0)
@@ -203,9 +205,9 @@ class SeriesAssistant(object):
             return len(model)
         
     def update_status_bar(self, seen, number):
-        fraction = min(1.0, seen / number)
+        fraction = max(0.0, min(1.0, float(seen) / number))
         self.obj('pg_series').set_fraction(fraction)
-        self.obj('pg_series').set_text('{0:n}/{1:n}'.format(seen, number))
+        self.obj('pg_series').set_text('{0:d}/{1:d}'.format(seen, number))
 
 ###############################
 ## signal handling
@@ -233,7 +235,7 @@ class SeriesAssistant(object):
         self.obj('ls_episodes').clear()
         episodes = self.retrieveEpisodeNames(seriesId)     
 
-        fraction = 0.0
+        fraction = 0
         for episode in episodes:
             episodeId = episode[5]
             action = self.actions.setdefault(str(int(seriesId + episodeId)), 0)
@@ -274,16 +276,49 @@ class SeriesAssistant(object):
                     number = self.set_current_episode_pixbuf(
                         self.list_pixbufs[self.actions[seriesId + episodeId]])
             
-            if not preAction == self.actions[seriesId + episodeId]:
-                update = 1.0
+            if (preAction == 3 and not self.actions[seriesId + episodeId] == 3) \
+                    or (not preAction == 3 and self.actions[seriesId + episodeId] == 3):
+                update = 1
                 if (preAction == 3 and not self.actions[seriesId + episodeId] == 3):
                     update *= -1
                 oldFraction = self.obj('pg_series').get_fraction()
-                print oldFraction * number + update
-                self.update_status_bar((oldFraction * number) + update, number)
+                self.update_status_bar(int(round(oldFraction * number + update)), number)
         except TypeError:
             pass
 
+    def on_bt_no_action_clicked(self, action, *args):
+        self.set_action_for_selection(0)        
+        
+    def on_bt_record_clicked(self, action, *args):
+        self.set_action_for_selection(1)
+        
+    def on_bt_downloaded_clicked(self, action, *args):
+        self.set_action_for_selection(2)
+        
+    def on_bt_seen_clicked(self, action, *args):
+        self.set_action_for_selection(3)
+        
+    def set_action_for_selection(self, action):
+        seriesId = self.get_current_series()[1]
+        pixbuf = self.list_pixbufs[action]
+        self.obj('tv_episodes').get_selection().selected_foreach(
+            self.foreach_set_pixbuf, (seriesId, action, pixbuf))
+
+    def foreach_set_pixbuf(self, model, path, iter, data):
+        seriesId, action, pixbuf = data
+        episodeId = model[iter][6]
+        
+        if (not action == 3 and self.actions[seriesId + episodeId] == 3) or \
+                (action == 3 and not self.actions[seriesId + episodeId] == 3):
+            update = 1
+            if (not action == 3 and self.actions[seriesId + episodeId] == 3):
+                update *= -1
+            oldFraction = self.obj('pg_series').get_fraction()
+            number = len(self.obj('ls_episodes'))
+            self.update_status_bar(int(round(oldFraction * number + update)), number)        
+        
+        self.actions[seriesId + episodeId] = action
+        model[iter][0] = pixbuf
 
 if __name__ == '__main__':
     app = SeriesAssistant()
