@@ -109,13 +109,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="bt_downloaded">
+                  <object class="GtkButton" id="bt_record">
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="tooltip_text" translatable="yes">Heruntergeladen</property>
+                    <property name="tooltip_text" translatable="yes">Aufgenommen</property>
                     <property name="use_action_appearance">False</property>
-                    <property name="image">im_download</property>
-                    <signal name="clicked" handler="on_bt_downloaded_clicked" swapped="no"/>
+                    <property name="image">im_record</property>
+                    <signal name="clicked" handler="on_bt_record_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -124,13 +124,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="bt_record">
+                  <object class="GtkButton" id="bt_downloaded">
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="tooltip_text" translatable="yes">Aufgenommen</property>
+                    <property name="tooltip_text" translatable="yes">Heruntergeladen</property>
                     <property name="use_action_appearance">False</property>
-                    <property name="image">im_record</property>
-                    <signal name="clicked" handler="on_bt_record_clicked" swapped="no"/>
+                    <property name="image">im_download</property>
+                    <signal name="clicked" handler="on_bt_downloaded_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
