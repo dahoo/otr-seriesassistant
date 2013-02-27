@@ -5,7 +5,7 @@
 """
 
 import helpers, inputDialog
-import gtk, requests, zipfile, StringIO, os, shelve
+import gtk, requests, zipfile, StringIO, os, shelve, shutil
 from xml.dom.minidom import parseString
 from collections import namedtuple
 from os.path import join, expanduser
@@ -282,6 +282,9 @@ class SeriesAssistant(object):
         for key in self.actions.keys():
             if key.startswith(seriesId):
                 del self.actions[key]
+                
+        shutil.rmtree(join(self.seriesDirectory, seriesId))
+        shutil.rmtree(join(self.bannerDirectory, 'episodes', seriesId))
 
     def on_radiobuttons_group_changed(self, action, *args):
         try:
