@@ -8,22 +8,34 @@
   <object class="GtkAction" id="ac_delete_series">
     <signal name="activate" handler="on_ac_delete_series_activate" swapped="no"/>
   </object>
+  <object class="GtkAction" id="ac_downloaded">
+    <signal name="activate" handler="on_bt_downloaded_clicked" swapped="no"/>
+  </object>
+  <object class="GtkAction" id="ac_no_action">
+    <signal name="activate" handler="on_bt_no_action_clicked" swapped="no"/>
+  </object>
+  <object class="GtkAction" id="ac_recorded">
+    <signal name="activate" handler="on_bt_record_clicked" swapped="no"/>
+  </object>
+  <object class="GtkAction" id="ac_seen">
+    <signal name="activate" handler="on_bt_seen_clicked" swapped="no"/>
+  </object>
+  <object class="GtkImage" id="im_add">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">images/add.png</property>
+  </object>
+  <object class="GtkImage" id="im_delete">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">images/delete.png</property>
+  </object>
   <object class="GtkImage" id="im_download">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">images/download.png</property>
   </object>
-  <object class="GtkImage" id="im_download1">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">images/download.png</property>
-  </object>
   <object class="GtkImage" id="im_no_action">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">images/no_action.png</property>
-  </object>
-  <object class="GtkImage" id="im_no_action1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">images/no_action.png</property>
@@ -97,9 +109,9 @@
                 <property name="can_focus">False</property>
                 <property name="related_action">ac_add_series</property>
                 <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">Serie hinzufügen</property>
+                <property name="label" translatable="yes">Add series</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-add</property>
+                <property name="icon_widget">im_add</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -112,9 +124,9 @@
                 <property name="can_focus">False</property>
                 <property name="related_action">ac_delete_series</property>
                 <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">Serie löschen</property>
+                <property name="label" translatable="yes">Delete series</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-remove</property>
+                <property name="icon_widget">im_delete</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -152,19 +164,14 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolItem" id="tb_bt_">
+              <object class="GtkToolButton" id="tb_bt_no_action">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="related_action">ac_no_action</property>
                 <property name="use_action_appearance">False</property>
-                <child>
-                  <object class="GtkButton" id="bt_no_action">
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="image">im_no_action1</property>
-                    <signal name="clicked" handler="on_bt_no_action_clicked" swapped="no"/>
-                  </object>
-                </child>
+                <property name="label" translatable="yes">No action</property>
+                <property name="use_underline">True</property>
+                <property name="icon_widget">im_no_action</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -172,19 +179,14 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolItem" id="toolbutton2">
+              <object class="GtkToolButton" id="tb_bt_recorded">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="related_action">ac_recorded</property>
                 <property name="use_action_appearance">False</property>
-                <child>
-                  <object class="GtkButton" id="bt_record">
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="image">im_record1</property>
-                    <signal name="clicked" handler="on_bt_record_clicked" swapped="no"/>
-                  </object>
-                </child>
+                <property name="label" translatable="yes">Recorded</property>
+                <property name="use_underline">True</property>
+                <property name="icon_widget">im_record</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -192,19 +194,14 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolItem" id="toolbutton3">
+              <object class="GtkToolButton" id="tb_bt_downloaded">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="related_action">ac_downloaded</property>
                 <property name="use_action_appearance">False</property>
-                <child>
-                  <object class="GtkButton" id="bt_downloaded">
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="image">im_download1</property>
-                    <signal name="clicked" handler="on_bt_downloaded_clicked" swapped="no"/>
-                  </object>
-                </child>
+                <property name="label" translatable="yes">Downloaded</property>
+                <property name="use_underline">True</property>
+                <property name="icon_widget">im_download</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -212,19 +209,14 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolItem" id="toolbutton4">
+              <object class="GtkToolButton" id="tb_bt_seen">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="related_action">ac_seen</property>
                 <property name="use_action_appearance">False</property>
-                <child>
-                  <object class="GtkButton" id="bt_seen">
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="image">im_seen1</property>
-                    <signal name="clicked" handler="on_bt_seen_clicked" swapped="no"/>
-                  </object>
-                </child>
+                <property name="label" translatable="yes">Seen</property>
+                <property name="use_underline">True</property>
+                <property name="icon_widget">im_seen</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -243,7 +235,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolItem" id="toolbutton5">
+              <object class="GtkToolItem" id="tb_pg">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="use_action_appearance">False</property>
