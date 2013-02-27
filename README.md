@@ -12,6 +12,5 @@ TODO:
 -----
 * Set language (global and per series)
 * cross-platform (save data in respective user directory)
-* delete series
 * update series information
 * integrate OTR functionality (e.g. search episodes on mirrors)
