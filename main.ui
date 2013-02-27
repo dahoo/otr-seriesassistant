@@ -45,17 +45,7 @@
     <property name="can_focus">False</property>
     <property name="pixbuf">images/record.png</property>
   </object>
-  <object class="GtkImage" id="im_record1">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">images/record.png</property>
-  </object>
   <object class="GtkImage" id="im_seen">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">images/seen.png</property>
-  </object>
-  <object class="GtkImage" id="im_seen1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">images/seen.png</property>
