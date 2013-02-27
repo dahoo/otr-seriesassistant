@@ -2,7 +2,18 @@
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
   <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkAction" id="ac_add_series">
+    <signal name="activate" handler="on_bt_new_clicked" swapped="no"/>
+  </object>
+  <object class="GtkAction" id="ac_delete_series">
+    <signal name="activate" handler="on_ac_delete_series_activate" swapped="no"/>
+  </object>
   <object class="GtkImage" id="im_download">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">images/download.png</property>
+  </object>
+  <object class="GtkImage" id="im_download1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">images/download.png</property>
@@ -12,12 +23,27 @@
     <property name="can_focus">False</property>
     <property name="pixbuf">images/no_action.png</property>
   </object>
+  <object class="GtkImage" id="im_no_action1">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">images/no_action.png</property>
+  </object>
   <object class="GtkImage" id="im_record">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">images/record.png</property>
   </object>
+  <object class="GtkImage" id="im_record1">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">images/record.png</property>
+  </object>
   <object class="GtkImage" id="im_seen">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">images/seen.png</property>
+  </object>
+  <object class="GtkImage" id="im_seen1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">images/seen.png</property>
@@ -48,127 +74,189 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkTreeModelSort" id="tms_series">
+    <property name="model">ls_series</property>
+  </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Serienassistent</property>
+    <property name="window_position">center</property>
+    <property name="default_width">800</property>
     <signal name="delete-event" handler="on_window1_delete_event" swapped="no"/>
     <child>
       <object class="GtkVBox" id="box1">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-          <object class="GtkHBox" id="box3">
+          <object class="GtkToolbar" id="toolbar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkButton" id="bt_new">
-                <property name="label" translatable="yes">Neue Serie</property>
+              <object class="GtkToolButton" id="tb_bt_add_series">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <property name="can_focus">False</property>
+                <property name="related_action">ac_add_series</property>
                 <property name="use_action_appearance">False</property>
-                <signal name="clicked" handler="on_bt_new_clicked" swapped="no"/>
+                <property name="label" translatable="yes">Serie hinzufügen</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-add</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
-              <object class="GtkComboBox" id="cb_series">
+              <object class="GtkToolButton" id="tb_bt_delete_series">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="model">ls_series</property>
-                <signal name="changed" handler="on_cb_series_changed" swapped="no"/>
+                <property name="related_action">ac_delete_series</property>
+                <property name="use_action_appearance">False</property>
+                <property name="label" translatable="yes">Serie löschen</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-remove</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">15</property>
-                <property name="position">1</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
-              <object class="GtkHButtonBox" id="hbuttonbox1">
+              <object class="GtkToolItem" id="tb_cb_series">
+                <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="layout_style">start</property>
+                <property name="use_action_appearance">False</property>
+                <child>
+                  <object class="GtkComboBox" id="cb_series">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="model">tms_series</property>
+                    <signal name="changed" handler="on_cb_series_changed" swapped="no"/>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="toolbutton1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="tb_bt_">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkButton" id="bt_no_action">
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="tooltip_text" translatable="yes">Keine Aktion</property>
                     <property name="use_action_appearance">False</property>
-                    <property name="image">im_no_action</property>
+                    <property name="image">im_no_action1</property>
                     <signal name="clicked" handler="on_bt_no_action_clicked" swapped="no"/>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">0</property>
-                  </packing>
                 </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolbutton2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkButton" id="bt_record">
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="tooltip_text" translatable="yes">Aufgenommen</property>
                     <property name="use_action_appearance">False</property>
-                    <property name="image">im_record</property>
+                    <property name="image">im_record1</property>
                     <signal name="clicked" handler="on_bt_record_clicked" swapped="no"/>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
-                  </packing>
                 </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolbutton3">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkButton" id="bt_downloaded">
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="tooltip_text" translatable="yes">Heruntergeladen</property>
                     <property name="use_action_appearance">False</property>
-                    <property name="image">im_download</property>
+                    <property name="image">im_download1</property>
                     <signal name="clicked" handler="on_bt_downloaded_clicked" swapped="no"/>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">2</property>
-                  </packing>
                 </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolbutton4">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkButton" id="bt_seen">
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="tooltip_text" translatable="yes">Gesehen</property>
                     <property name="use_action_appearance">False</property>
-                    <property name="image">im_seen</property>
+                    <property name="image">im_seen1</property>
                     <signal name="clicked" handler="on_bt_seen_clicked" swapped="no"/>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">3</property>
-                  </packing>
                 </child>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
-              <object class="GtkProgressBar" id="pg_series">
+              <object class="GtkSeparatorToolItem" id="toolbutton6">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">3</property>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolbutton5">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+                <child>
+                  <object class="GtkProgressBar" id="pg_series">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
           </object>

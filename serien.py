@@ -14,6 +14,9 @@ Episode = namedtuple("Episode", "season number name image plot id")
 
 class SeriesAssistant(object):
     def __init__(self):
+        
+        settings = gtk.settings_get_default()
+        settings.props.gtk_button_images = True
 
         self.bannerDirectory = join(expanduser('~'), '.config', 
                                     'OTR-Serien-Assistent', 'banners')
@@ -79,6 +82,7 @@ class SeriesAssistant(object):
         gtk.main_quit()
 
     def loadSeries(self):
+        self.obj('tms_series').set_sort_column_id(0, gtk.SORT_ASCENDING)
         for value in self.series:
             self.obj('ls_series').append((self.series[value], value))
         self.obj('cb_series').set_active(0)
@@ -191,6 +195,7 @@ class SeriesAssistant(object):
             name = model[tree_iter][0]
             row_id = model[tree_iter][1]
             return (name, row_id)
+        return (None, None)
     
     def get_current_episode(self):
         path = self.obj('tv_episodes').get_cursor()[0]
@@ -208,6 +213,14 @@ class SeriesAssistant(object):
         fraction = max(0.0, min(1.0, float(seen) / number))
         self.obj('pg_series').set_fraction(fraction)
         self.obj('pg_series').set_text('{0:d}/{1:d}'.format(seen, number))
+        
+    def remove_from_list(self, path):
+        it = self.obj('ls_series').get_iter(path)
+        if self.obj('ls_series').iter_is_valid(it):
+            self.obj('ls_series').remove(it)
+            if path >= len(self.obj('ls_series')):                
+                path=path-1
+        self.obj('cb_series').set_active(path)
 
 ###############################
 ## signal handling
@@ -232,6 +245,8 @@ class SeriesAssistant(object):
         
     def on_cb_series_changed(self, action, *args):
         name, seriesId = self.get_current_series()
+        if seriesId == None:
+            return
         self.obj('ls_episodes').clear()
         episodes = self.retrieveEpisodeNames(seriesId)     
 
@@ -250,9 +265,23 @@ class SeriesAssistant(object):
     def on_bt_new_clicked(self, action, *args):
         new = inputDialog.getDialogText()
         self.obj('ls_series').append((new[0], new[1]))
-        self.obj('cb_series').set_active(len(self.obj('ls_series')) - 1)
+        old_path = len(self.obj('ls_series')) - 1
+        path = self.obj('tms_series').convert_child_path_to_path(old_path)[0]
+        self.obj('cb_series').set_active(path)
         self.series[new[1]] = new[0]
         self.series.sync()
+        
+    def on_ac_delete_series_activate(self, action, *args):
+        seriesId = self.get_current_series()[1]
+        old_path = self.obj('cb_series').get_active()
+        path = self.obj('tms_series').convert_path_to_child_path(old_path)[0]
+        if path is not None: 
+            self.remove_from_list(path)
+        del self.series[seriesId]
+        
+        for key in self.actions.keys():
+            if key.startswith(seriesId):
+                del self.actions[key]
 
     def on_radiobuttons_group_changed(self, action, *args):
         try:
