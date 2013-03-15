@@ -31,7 +31,13 @@ class ChooseSeriesDialog(object):
         
     def on_bt_search_clicked(self, action, *args):
         name = self.obj('en_name').get_text()
-        response = requests.get('http://www.thetvdb.com/api/GetSeries.php?seriesname=' + name)
+        language = ''
+        if self.obj('rb_german').get_active():
+            language = '&language=de'
+        elif self.obj('rb_all').get_active():
+            language = '&language=all'
+        response = requests.get('http://www.thetvdb.com/api/GetSeries.php?seriesname=' + name + language)
+        
         if response.status_code == 200:
             xmlFile = parseString(response.content)
             for element in xmlFile.getElementsByTagName('Series'):

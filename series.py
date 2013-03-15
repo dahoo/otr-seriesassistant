@@ -5,12 +5,12 @@
 """
 
 import helpers, inputDialog
-import gtk, requests, zipfile, StringIO, os, shelve, shutil
+import gtk, requests, zipfile, StringIO, os, shelve, shutil, glob, subprocess
 from xml.dom.minidom import parseString
 from collections import namedtuple
 from os.path import join, expanduser
 
-Episode = namedtuple("Episode", "season number name image plot id")
+Episode = namedtuple("Episode", "season number name image plot id videofile")
 
 class SeriesAssistant(object):
     def __init__(self):
@@ -61,6 +61,7 @@ class SeriesAssistant(object):
         self.obj('tv_episodes').set_cursor(0)
     
         window = self.builder.get_object("window1")
+        window.maximize()
         window.show_all()
 
 
@@ -130,7 +131,7 @@ class SeriesAssistant(object):
                 plot = helpers.getNodeText(episodeElem, 'Overview')
                 episodeId = helpers.getNodeText(episodeElem, 'id')
                 
-                episode = Episode(season, int(number.split('.')[0]), name, image, plot, episodeId)
+                episode = Episode(season, int(number.split('.')[0]), name, image, plot, episodeId, '')
                 episodes.append(episode)
         return episodes
     
@@ -168,20 +169,39 @@ class SeriesAssistant(object):
         textBuffer = self.obj('txt_plot').get_buffer()
         textBuffer.set_text(values[5])
         
-        episodeId = self.get_current_episode()[6]
-        seriesId = self.get_current_series()[1]
-        action = self.actions.setdefault(seriesId + episodeId, 0)
+        series = self.get_current_series()
+        episode = self.get_current_episode()
         
-        if action == 0:
-            self.obj('rb_no_action').set_active(True)
-        elif action == 1:
-            self.obj('rb_recorded').set_active(True)
-        elif action == 2:
-            self.obj('rb_downloaded').set_active(True)
-        elif action == 3:
-            self.obj('rb_seen').set_active(True)
-            
+        self.update_file_info(series, self.get_current_episode_iter())
+        
+        episodeId = episode[6]
+        seriesId = series[1]                
+        self.actions.setdefault(seriesId + episodeId, 0)            
         self.actions.sync()
+        
+    def update_file_info(self, series, episodeIter):
+        episode = self.obj('ls_episodes')[episodeIter]
+        seriesName, seriesId = series
+        season = str(episode[1])
+        episodeNumber = str(episode[2])
+        files = self.get_file_list_for_episode(seriesName, season, episodeNumber)  
+        if len(files) > 0:
+            episode[7] = files[0]
+            self.obj('tb_bt_play').set_sensitive(True)
+            if not (episode[0] == self.list_pixbufs[2] or episode[0] == self.list_pixbufs[3]):
+                #self.set_action_for_selection(2)
+                pixbuf = self.list_pixbufs[2]
+                self.foreach_set_pixbuf(self.obj('ls_episodes'), 0, episodeIter, (seriesId, 2, pixbuf))
+        else:
+            episode[7] = ''
+            self.obj('tb_bt_play').set_sensitive(False)
+        
+    def get_file_list_for_episode(self, seriesName, season, episodeNumber):
+        seriesName = seriesName.replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue')
+        files = glob.glob(join(expanduser('~'), 'Videos', '*' + seriesName + '*' + season + 'x' + episodeNumber.zfill(2) + '*'))
+        if len(files) == 0:
+            files = glob.glob(join(expanduser('~'), 'Videos', '*', '*' + seriesName + '*' + season + 'x' + episodeNumber.zfill(2) + '*'))
+        return files
 
     def get_icon_pixbuf(self, stock):
         return self.obj('tv_episodes').render_icon(stock_id=getattr(gtk, stock),
@@ -201,6 +221,11 @@ class SeriesAssistant(object):
         path = self.obj('tv_episodes').get_cursor()[0]
         if path is not None:
             return self.obj('ls_episodes')[path]
+            
+    def get_current_episode_iter(self):
+        path = self.obj('tv_episodes').get_cursor()[0]
+        if path is not None:
+            return self.obj('ls_episodes').get_iter(path)
             
     def set_current_episode_pixbuf(self, pixbuf):
         tree_iter = self.obj('tv_episodes').get_cursor()[0]
@@ -248,19 +273,22 @@ class SeriesAssistant(object):
         if seriesId == None:
             return
         self.obj('ls_episodes').clear()
-        episodes = self.retrieveEpisodeNames(seriesId)     
+        self.episodes = self.retrieveEpisodeNames(seriesId)     
 
         fraction = 0
-        for episode in episodes:
+        for episode in self.episodes:
             episodeId = episode[5]
             action = self.actions.setdefault(str(int(seriesId + episodeId)), 0)
             if action == 3:
                 fraction += 1
             pixbuf = self.list_pixbufs[action]            
-            self.obj('ls_episodes').append((pixbuf, episode[0], episode[1], episode[2],
-                                             episode[3], episode[4], episode[5]))
+            treeIter = self.obj('ls_episodes').append((pixbuf, episode[0], episode[1], episode[2],
+                                             episode[3], episode[4], episode[5], ''))
+            #self.obj('tv_episodes').set_cursor(len(self.obj('ls_episodes')) - 1)
+            model = self.obj('tv_episodes').get_model()                                 
+            self.update_file_info(self.get_current_series(), treeIter)
         self.obj('tv_episodes').set_cursor(0)
-        self.update_status_bar(fraction, len(episodes))
+        self.update_status_bar(fraction, len(self.episodes))
                                          
     def on_bt_new_clicked(self, action, *args):
         new = inputDialog.getDialogText()
@@ -351,7 +379,11 @@ class SeriesAssistant(object):
         
         self.actions[seriesId + episodeId] = action
         model[iter][0] = pixbuf
-
+        
+    def on_ac_play_activate(self, action, *args):
+        filePath =self.get_current_episode()[7]
+        subprocess.Popen(["totem", filePath])
+        
 if __name__ == '__main__':
     app = SeriesAssistant()
     app.run()
