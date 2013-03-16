@@ -4,7 +4,7 @@
 @author: Daniel Hoffmann
 """
 
-import helpers, inputDialog
+import helpers, inputDialog, settingsDialog
 import gtk, requests, zipfile, StringIO, os, shelve, shutil, glob, subprocess
 from xml.dom.minidom import parseString
 from collections import namedtuple
@@ -14,7 +14,6 @@ Episode = namedtuple("Episode", "season number name image plot id videofile")
 
 class SeriesAssistant(object):
     def __init__(self):
-        
         settings = gtk.settings_get_default()
         settings.props.gtk_button_images = True
 
@@ -23,7 +22,18 @@ class SeriesAssistant(object):
         self.seriesDirectory = join(expanduser('~'), '.config', 
                                     'OTR-Serien-Assistent', 'series')
         helpers.assure_path_exists(self.bannerDirectory)    
-        helpers.assure_path_exists(self.seriesDirectory)    
+        helpers.assure_path_exists(self.seriesDirectory)  
+        
+        self.settingsDB = shelve.open(join(expanduser('~'), '.config', 
+                                    'OTR-Serien-Assistent', 'settings.db'))        
+        
+        self.videoPath = self.settingsDB.setdefault('videoPath', 
+                                join(expanduser('~'), 'Videos'))
+        self.archivePath = self.settingsDB.setdefault('archivePath', 
+                                join(expanduser('~'), 'Videos', 'archiv'))
+        self.videoPlayer = self.settingsDB.setdefault('videoPlayer', 
+                                join('/', 'usr', 'bin', 'totem'))
+        self.settingsDB.sync()
         
         self.builder = gtk.Builder()
         self.builder.add_from_file("main.ui")
@@ -186,11 +196,16 @@ class SeriesAssistant(object):
         episodeNumber = str(episode[2])
         files = self.get_file_list_for_episode(seriesName, season, episodeNumber)  
         if len(files) > 0:
-            episode[7] = files[0]
+            filename = files[0]
+            episode[7] = filename
             self.obj('tb_bt_play').set_sensitive(True)
             if not (episode[0] == self.list_pixbufs[2] or episode[0] == self.list_pixbufs[3]):
                 #self.set_action_for_selection(2)
-                pixbuf = self.list_pixbufs[2]
+                print filename
+                if filename.startswith(self.archivePath):
+                    pixbuf = self.list_pixbufs[3]
+                else:
+                    pixbuf = self.list_pixbufs[2]
                 self.foreach_set_pixbuf(self.obj('ls_episodes'), 0, episodeIter, (seriesId, 2, pixbuf))
         else:
             episode[7] = ''
@@ -198,9 +213,9 @@ class SeriesAssistant(object):
         
     def get_file_list_for_episode(self, seriesName, season, episodeNumber):
         seriesName = seriesName.replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue')
-        files = glob.glob(join(expanduser('~'), 'Videos', '*' + seriesName + '*' + season + 'x' + episodeNumber.zfill(2) + '*'))
+        files = glob.glob(join(self.videoPath, '*' + seriesName + '*' + season + 'x' + episodeNumber.zfill(2) + '*'))
         if len(files) == 0:
-            files = glob.glob(join(expanduser('~'), 'Videos', '*', '*' + seriesName + '*' + season + 'x' + episodeNumber.zfill(2) + '*'))
+            files = glob.glob(join(self.videoPath, '*', '*' + seriesName + '*' + season + 'x' + episodeNumber.zfill(2) + '*'))
         return files
 
     def get_icon_pixbuf(self, stock):
@@ -375,14 +390,31 @@ class SeriesAssistant(object):
                 update *= -1
             oldFraction = self.obj('pg_series').get_fraction()
             number = len(self.obj('ls_episodes'))
-            self.update_status_bar(int(round(oldFraction * number + update)), number)        
+            self.update_status_bar(int(round(oldFraction * number + update)), number)
+            
+            source = model[iter][7]
+            if len(source) > 0:
+                if action == 3:
+                    dest = join(self.archivePath, model[iter][7].split(os.sep)[-1])
+                else:
+                    dest = join(self.videoPath, model[iter][7].split(os.sep)[-1])
+                    
+                shutil.move(source, dest)
+                model[iter][7] = dest
         
         self.actions[seriesId + episodeId] = action
         model[iter][0] = pixbuf
         
     def on_ac_play_activate(self, action, *args):
-        filePath =self.get_current_episode()[7]
-        subprocess.Popen(["totem", filePath])
+        filePath = self.get_current_episode()[7]
+        subprocess.Popen([self.videoPlayer, filePath])
+        
+    def on_ac_settings_activate(self, action, *args):
+        settings = settingsDialog.getDialogResponse(self.videoPath, self.archivePath, self.videoPlayer)
+        if settings:        
+            self.videoPath, self.archivePath, self.videoPlayer = settings
+            self.settingsDB['videoPath'], self.settingsDB['archivePath'], self.settingsDB['videoPlayer'] = settings
+            self.settingsDB.sync()
         
 if __name__ == '__main__':
     app = SeriesAssistant()

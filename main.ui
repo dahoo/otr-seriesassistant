@@ -23,6 +23,9 @@
   <object class="GtkAction" id="ac_seen">
     <signal name="activate" handler="on_bt_seen_clicked" swapped="no"/>
   </object>
+  <object class="GtkAction" id="ac_settings">
+    <signal name="activate" handler="on_ac_settings_activate" swapped="no"/>
+  </object>
   <object class="GtkImage" id="im_add">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -57,6 +60,12 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">images/seen.png</property>
+  </object>
+  <object class="GtkImage" id="im_settings">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="xpad">6</property>
+    <property name="pixbuf">images/settings.png</property>
   </object>
   <object class="GtkListStore" id="ls_episodes">
     <columns>
@@ -251,6 +260,32 @@
             </child>
             <child>
               <object class="GtkSeparatorToolItem" id="toolbutton6">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="Settings">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="related_action">ac_settings</property>
+                <property name="use_action_appearance">False</property>
+                <property name="label" translatable="yes">Einstellungen</property>
+                <property name="use_underline">True</property>
+                <property name="icon_widget">im_settings</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="toolbutton3">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="use_action_appearance">False</property>
