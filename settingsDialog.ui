@@ -11,7 +11,7 @@
   <object class="GtkDialog" id="dialog1">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
-    <property name="title" translatable="yes">Einstellungen</property>
+    <property name="title" translatable="yes">Settings</property>
     <property name="modal">True</property>
     <property name="window_position">center</property>
     <property name="type_hint">dialog</property>
@@ -27,7 +27,7 @@
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="button2">
-                <property name="label" translatable="yes">Abbrechen</property>
+                <property name="label" translatable="yes">Cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -42,7 +42,7 @@
             </child>
             <child>
               <object class="GtkButton" id="btOk">
-                <property name="label" translatable="yes">Speichern</property>
+                <property name="label" translatable="yes">Save</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -73,7 +73,7 @@
                 <property name="can_focus">False</property>
                 <property name="xalign">0</property>
                 <property name="xpad">5</property>
-                <property name="label" translatable="yes">Pfad zu Video-Dateien</property>
+                <property name="label" translatable="yes">Path to video files</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -112,7 +112,7 @@
                 <property name="can_focus">False</property>
                 <property name="xalign">0</property>
                 <property name="xpad">5</property>
-                <property name="label" translatable="yes">Pfad zu gesehenen Video-Dateien</property>
+                <property name="label" translatable="yes">Path to seen video files</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -151,7 +151,7 @@
                 <property name="can_focus">False</property>
                 <property name="xalign">0</property>
                 <property name="xpad">5</property>
-                <property name="label" translatable="yes">Video-Player</property>
+                <property name="label" translatable="yes">Video player executable</property>
               </object>
               <packing>
                 <property name="expand">True</property>

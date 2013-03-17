@@ -18,14 +18,14 @@ class SeriesAssistant(object):
         settings.props.gtk_button_images = True
 
         self.bannerDirectory = join(expanduser('~'), '.config', 
-                                    'OTR-Serien-Assistent', 'banners')
+                                    'OTR Series Assistant', 'banners')
         self.seriesDirectory = join(expanduser('~'), '.config', 
-                                    'OTR-Serien-Assistent', 'series')
+                                    'OTR Series Assistant', 'series')
         helpers.assure_path_exists(self.bannerDirectory)    
         helpers.assure_path_exists(self.seriesDirectory)  
         
         self.settingsDB = shelve.open(join(expanduser('~'), '.config', 
-                                    'OTR-Serien-Assistent', 'settings.db'))        
+                                    'OTR Series Assistant', 'settings.db'))        
         
         self.videoPath = self.settingsDB.setdefault('videoPath', 
                                 join(expanduser('~'), 'Videos'))
@@ -40,9 +40,9 @@ class SeriesAssistant(object):
         self.builder.connect_signals(self)
         
         self.actions = shelve.open(join(expanduser('~'), '.config', 
-                                    'OTR-Serien-Assistent', 'config.db'))
+                                    'OTR Series Assistant', 'config.db'))
         self.series = shelve.open(join(expanduser('~'), '.config', 
-                                    'OTR-Serien-Assistent', 'series.db'))
+                                    'OTR Series Assistant', 'series.db'))
         images = ['record.png', 'download.png', 'seen.png']                
         self.list_pixbufs = [gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 16, 16).fill(0x00000000)]
         for image in images:
@@ -53,7 +53,7 @@ class SeriesAssistant(object):
         helpers.create_treeview_column(self.obj('tv_episodes'), '', 0,
                                gtk.CellRendererPixbuf(), 'pixbuf')        
         
-        helpers.create_treeview_column(self.obj('tv_episodes'), 'Staffel', 1,
+        helpers.create_treeview_column(self.obj('tv_episodes'), 'Season', 1,
                                gtk.CellRendererText())
 
         helpers.create_treeview_column(self.obj('tv_episodes'), 'Episode',  2,
@@ -303,21 +303,20 @@ class SeriesAssistant(object):
                 fraction += 1
             pixbuf = self.list_pixbufs[action]            
             treeIter = self.obj('ls_episodes').append((pixbuf, episode[0], episode[1], episode[2],
-                                             episode[3], episode[4], episode[5], ''))
-            #self.obj('tv_episodes').set_cursor(len(self.obj('ls_episodes')) - 1)
-            model = self.obj('tv_episodes').get_model()                                 
+                                             episode[3], episode[4], episode[5], ''))                               
             self.update_file_info(self.get_current_series(), treeIter)
         self.obj('tv_episodes').set_cursor(0)
         self.update_status_bar(fraction, len(self.episodes))
                                          
     def on_bt_new_clicked(self, action, *args):
-        new = inputDialog.getDialogText()
-        self.obj('ls_series').append((new[0], new[1]))
-        old_path = len(self.obj('ls_series')) - 1
-        path = self.obj('tms_series').convert_child_path_to_path(old_path)[0]
-        self.obj('cb_series').set_active(path)
-        self.series[new[1]] = new[0]
-        self.series.sync()
+        new = inputDialog.getSeries()
+        if new:
+            self.obj('ls_series').append((new[0], new[1]))
+            old_path = len(self.obj('ls_series')) - 1
+            path = self.obj('tms_series').convert_child_path_to_path(old_path)[0]
+            self.obj('cb_series').set_active(path)
+            self.series[new[1]] = new[0]
+            self.series.sync()
         
     def on_ac_delete_series_activate(self, action, *args):
         seriesId = self.get_current_series()[1]

@@ -52,6 +52,10 @@ class ChooseSeriesDialog(object):
             self.response = (row[0], row[1])
             self.quit()
             
+    def on_bt_cancel_clicked(self, action, *args):
+        self.response = None
+        self.quit()
+            
     def run(self):
         try:
             gtk.main()
@@ -61,7 +65,7 @@ class ChooseSeriesDialog(object):
     def quit(self):
         gtk.main_quit()
  
-def getDialogText():
+def getSeries():
     dialog = ChooseSeriesDialog()
     dialog.run()
     response = dialog.response
@@ -69,5 +73,7 @@ def getDialogText():
     return response
     
 if __name__ == '__main__':
-    print "Selected: %s" % getDialogText()[0]
+    series = getSeries()
+    if series:
+        print "Selected: %s" % getSeries()[0]
     gtk.main()
