@@ -5,7 +5,7 @@ Track the series you watch. Mainly developed for [OnlineTVRecorder](http://www.o
 
 It uses the series information from [TheTVDB.com](http://www.thetvdb.com) and the [Default icon set](http://www.defaulticon.com/) from [interactivemania](http://www.interactivemania.com/).
 
-Currently the language is German and the program works only on Linux.
+Currently the program only works on Linux.
 
 
 TODO:
