@@ -118,6 +118,13 @@ class SeriesAssistant(object):
                content = file.read()
                file.close()
         except IOError:
+            response = requests.get('http://thetvdb.com/api/Updates.php?type=none')     
+            if response.status_code == 200:
+                xmlFile = parseString(response.content)
+                previousTime = helpers.getNodeText(xmlFile, 'Time')
+                self.series[seriesId + ' time'] = previousTime
+            
+            print self.series[seriesId + ' time']
             response = requests.get(path + '/de.zip')
             if response.status_code == 200:
                 zip = zipfile.ZipFile(StringIO.StringIO(response.content))
@@ -200,8 +207,6 @@ class SeriesAssistant(object):
             episode[7] = filename
             self.obj('tb_bt_play').set_sensitive(True)
             if not (episode[0] == self.list_pixbufs[2] or episode[0] == self.list_pixbufs[3]):
-                #self.set_action_for_selection(2)
-                print filename
                 if filename.startswith(self.archivePath):
                     pixbuf = self.list_pixbufs[3]
                 else:
@@ -328,6 +333,9 @@ class SeriesAssistant(object):
                 
         shutil.rmtree(join(self.seriesDirectory, seriesId))
         shutil.rmtree(join(self.bannerDirectory, 'episodes', seriesId))
+        
+    def on_update_clicked(self, action, *args):
+        print 'update'
 
     def on_radiobuttons_group_changed(self, action, *args):
         try:
@@ -394,12 +402,21 @@ class SeriesAssistant(object):
             
             source = model[iter][7]
             if len(source) > 0:
+                destName = ''
                 if action == 3:
                     dest = join(self.archivePath, model[iter][7].split(os.sep)[-1])
+                    destName = 'archive'
                 else:
                     dest = join(self.videoPath, model[iter][7].split(os.sep)[-1])
+                    destName = 'video folder'
                     
+                statusbar = self.obj('statusBar')
+                context_id = statusbar.get_context_id('move')
+                statusbar.push(context_id, 'Move file to ' + destName)
+                while gtk.events_pending():
+                    gtk.main_iteration_do(True)
                 shutil.move(source, dest)
+                statusbar.pop(context_id)
                 model[iter][7] = dest
         
         self.actions[seriesId + episodeId] = action

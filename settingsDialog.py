@@ -13,14 +13,20 @@ class SettingsDialog(object):
         self.builder.add_from_file("settingsDialog.ui")
         self.builder.connect_signals(self)
         
+        self.videoPath = videoPath
+        self.archivePath = archivePath
+        self.videoPlayer = videoPlayer
+        
         if len(videoPath) > 0:
-            self.obj('fcbVideos').set_current_folder(videoPath)
+            self.obj('fcbVideos').set_current_folder(self.videoPath)
             
         if len(archivePath) > 0:
-            self.obj('fcbVideosArchive').set_current_folder(archivePath)
+            self.obj('fcbVideosArchive').set_current_folder(self.archivePath)
         
         if len(videoPlayer) > 0:
-            self.obj('fcbPlayer').set_filename(videoPlayer)
+            self.obj('fcbPlayer').set_filename(self.videoPlayer)
+            
+        self.obj('fcbVideosArchive').connect('current-folder-changed', self.file_selected)
         
         window = self.builder.get_object("dialog1")
         window.show_all()
@@ -31,10 +37,17 @@ class SettingsDialog(object):
         """
         return self.builder.get_object(name)     
             
+    def file_selected(self, widget):
+        name = gtk.Buildable.get_name(widget)
+        if name == 'fcbVideos':
+            self.videoPath = widget.get_filename()
+        elif name == 'fcbVideosArchive':
+            self.archivePath = widget.get_filename()
+        elif name == 'fcbPlayer':
+            self.videoPlayer = widget.get_filename()
+            
     def on_ac_ok_clicked_activate(self, action, *args):
-        self.response = (self.obj('fcbVideos').get_current_folder(), 
-                         self.obj('fcbVideosArchive').get_current_folder(),
-                         self.obj('fcbPlayer').get_filename())
+        self.response = (self.videoPath, self.archivePath, self.videoPlayer)
         self.quit()
         
     def on_ac_cancel_clicked_activate(self, action, *args):
