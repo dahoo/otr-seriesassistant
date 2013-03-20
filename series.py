@@ -9,6 +9,7 @@ import gtk, requests, zipfile, StringIO, os, shelve, shutil, glob, subprocess
 from xml.dom.minidom import parseString
 from collections import namedtuple
 from os.path import join, expanduser
+from appdirs import user_data_dir
 
 Episode = namedtuple("Episode", "season number name image plot id videofile")
 
@@ -16,16 +17,17 @@ class SeriesAssistant(object):
     def __init__(self):
         settings = gtk.settings_get_default()
         settings.props.gtk_button_images = True
+        
+        appname = "OTR Series Assistant"
+        appauthor = "Daniel Hoffmann"
+        dataDir = user_data_dir(appname, appauthor)
 
-        self.bannerDirectory = join(expanduser('~'), '.config', 
-                                    'OTR Series Assistant', 'banners')
-        self.seriesDirectory = join(expanduser('~'), '.config', 
-                                    'OTR Series Assistant', 'series')
+        self.bannerDirectory = join(dataDir, 'banners')
+        self.seriesDirectory = join(dataDir, 'series')
         helpers.assure_path_exists(self.bannerDirectory)    
         helpers.assure_path_exists(self.seriesDirectory)  
         
-        self.settingsDB = shelve.open(join(expanduser('~'), '.config', 
-                                    'OTR Series Assistant', 'settings.db'))        
+        self.settingsDB = shelve.open(join(dataDir, 'settings.db'))        
         
         self.videoPath = self.settingsDB.setdefault('videoPath', 
                                 join(expanduser('~'), 'Videos'))
@@ -36,17 +38,16 @@ class SeriesAssistant(object):
         self.settingsDB.sync()
         
         self.builder = gtk.Builder()
-        self.builder.add_from_file("main.ui")
+        self.builder.add_from_file(join(os.path.split(os.path.realpath(__file__))[0], "main.ui"))
         self.builder.connect_signals(self)
         
-        self.actions = shelve.open(join(expanduser('~'), '.config', 
-                                    'OTR Series Assistant', 'config.db'))
-        self.series = shelve.open(join(expanduser('~'), '.config', 
-                                    'OTR Series Assistant', 'series.db'))
+        self.actions = shelve.open(join(dataDir, 'config.db'))
+        self.series = shelve.open(join(dataDir, 'series.db'))
+        self.timestamps = shelve.open(join(dataDir, 'timestamps.db'))
         images = ['record.png', 'download.png', 'seen.png']                
         self.list_pixbufs = [gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 16, 16).fill(0x00000000)]
         for image in images:
-            f = join('images', image)
+            f = join(join(os.path.split(os.path.realpath(__file__))[0], 'images'), image)
             pixbuf = gtk.gdk.pixbuf_new_from_file(f)
             self.list_pixbufs.append(pixbuf)
 
@@ -94,7 +95,7 @@ class SeriesAssistant(object):
 
     def loadSeries(self):
         self.obj('tms_series').set_sort_column_id(0, gtk.SORT_ASCENDING)
-        for value in self.series:
+        for value in self.series.keys():
             self.obj('ls_series').append((self.series[value], value))
         self.obj('cb_series').set_active(0)
 
@@ -122,9 +123,10 @@ class SeriesAssistant(object):
             if response.status_code == 200:
                 xmlFile = parseString(response.content)
                 previousTime = helpers.getNodeText(xmlFile, 'Time')
-                self.series[seriesId + ' time'] = previousTime
+                self.timestamps[seriesId] = previousTime
+            else:
+                print "Error retrieving timestamp"
             
-            print self.series[seriesId + ' time']
             response = requests.get(path + '/de.zip')
             if response.status_code == 200:
                 zip = zipfile.ZipFile(StringIO.StringIO(response.content))
@@ -133,7 +135,9 @@ class SeriesAssistant(object):
                    content = file.read()
                    file.close() 
 
-        
+        if len(content) == 0:
+            print "Error retrieving episode information"
+            return []
         xmlFile = parseString(content)
         
         episodesXML = xmlFile.getElementsByTagName('Episode')
@@ -193,7 +197,7 @@ class SeriesAssistant(object):
         
         episodeId = episode[6]
         seriesId = series[1]                
-        self.actions.setdefault(seriesId + episodeId, 0)            
+        self.actions.setdefault(seriesId + ' ' + episodeId, 0)            
         self.actions.sync()
         
     def update_file_info(self, series, episodeIter):
@@ -295,10 +299,13 @@ class SeriesAssistant(object):
         self.obj('ls_episodes').clear()
         self.episodes = self.retrieveEpisodeNames(seriesId)     
 
+        if len(self.episodes) == 0:
+            return
+
         fraction = 0
         for episode in self.episodes:
             episodeId = episode[5]
-            action = self.actions.setdefault(str(int(seriesId + episodeId)), 0)
+            action = self.actions.setdefault(str(seriesId + ' ' + episodeId), 0)
             if action == 3:
                 fraction += 1
             pixbuf = self.list_pixbufs[action]            
@@ -327,14 +334,18 @@ class SeriesAssistant(object):
         del self.series[seriesId]
         
         for key in self.actions.keys():
-            if key.startswith(seriesId):
+            if key.split(' ')[0] == (seriesId):
                 del self.actions[key]
+        try:        
+            shutil.rmtree(join(self.seriesDirectory, seriesId))
+            shutil.rmtree(join(self.bannerDirectory, 'episodes', seriesId))
+        except OSError:
+            pass
                 
-        shutil.rmtree(join(self.seriesDirectory, seriesId))
-        shutil.rmtree(join(self.bannerDirectory, 'episodes', seriesId))
         
     def on_update_clicked(self, action, *args):
-        print 'update'
+        seriesId = self.get_current_series()[1]
+        print 'last update', self.timestamps[seriesId]
 
     def on_radiobuttons_group_changed(self, action, *args):
         try:
@@ -342,26 +353,27 @@ class SeriesAssistant(object):
             seriesId = self.get_current_series()[1]           
             
             buttons = action.get_group()
-            preAction = self.actions[seriesId + episodeId]
+            key = seriesId + ' ' + episodeId
+            preAction = self.actions[key]
             for button in buttons:
                 if button.get_active():
                     name = gtk.Buildable.get_name(button)
                     if name == 'rb_no_action':
-                        self.actions[seriesId + episodeId] = 0
+                        self.actions[key] = 0
                     elif name == 'rb_recorded':
-                        self.actions[seriesId + episodeId] = 1
+                        self.actions[key] = 1
                     elif name == 'rb_downloaded':
-                        self.actions[seriesId + episodeId] = 2
+                        self.actions[key] = 2
                     elif name == 'rb_seen':
-                        self.actions[seriesId + episodeId] = 3
+                        self.actions[key] = 3
                     self.actions.sync()
                     number = self.set_current_episode_pixbuf(
-                        self.list_pixbufs[self.actions[seriesId + episodeId]])
+                        self.list_pixbufs[self.actions[key]])
             
-            if (preAction == 3 and not self.actions[seriesId + episodeId] == 3) \
-                    or (not preAction == 3 and self.actions[seriesId + episodeId] == 3):
+            if (preAction == 3 and not self.actions[key] == 3) \
+                    or (not preAction == 3 and self.actions[key] == 3):
                 update = 1
-                if (preAction == 3 and not self.actions[seriesId + episodeId] == 3):
+                if (preAction == 3 and not self.actions[key] == 3):
                     update *= -1
                 oldFraction = self.obj('pg_series').get_fraction()
                 self.update_status_bar(int(round(oldFraction * number + update)), number)
@@ -389,11 +401,13 @@ class SeriesAssistant(object):
     def foreach_set_pixbuf(self, model, path, iter, data):
         seriesId, action, pixbuf = data
         episodeId = model[iter][6]
+
+        key = seriesId + ' ' + episodeId        
         
-        if (not action == 3 and self.actions[seriesId + episodeId] == 3) or \
-                (action == 3 and not self.actions[seriesId + episodeId] == 3):
+        if (not action == 3 and self.actions[key] == 3) or \
+                (action == 3 and not self.actions[key] == 3):
             update = 1
-            if (not action == 3 and self.actions[seriesId + episodeId] == 3):
+            if (not action == 3 and self.actions[key] == 3):
                 update *= -1
             oldFraction = self.obj('pg_series').get_fraction()
             number = len(self.obj('ls_episodes'))
@@ -408,7 +422,8 @@ class SeriesAssistant(object):
                 else:
                     dest = join(self.videoPath, model[iter][7].split(os.sep)[-1])
                     destName = 'video folder'
-                    
+                
+                #print "Move ", source, " to ", dest
                 statusbar = self.obj('statusBar')
                 context_id = statusbar.get_context_id('move')
                 statusbar.push(context_id, 'Move file to ' + destName)
@@ -418,7 +433,7 @@ class SeriesAssistant(object):
                 statusbar.pop(context_id)
                 model[iter][7] = dest
         
-        self.actions[seriesId + episodeId] = action
+        self.actions[key] = action
         model[iter][0] = pixbuf
         
     def on_ac_play_activate(self, action, *args):

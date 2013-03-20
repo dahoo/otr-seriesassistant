@@ -5,12 +5,14 @@
 """
 
 import gtk
+import os.path
 from os.path import join, expanduser
 
 class SettingsDialog(object):
     def __init__(self, videoPath, archivePath, videoPlayer):
         self.builder = gtk.Builder()
-        self.builder.add_from_file("settingsDialog.ui")
+        self.builder.add_from_file(join(os.path.split(os.path.realpath(__file__))[0], 
+                                        "settingsDialog.ui"))
         self.builder.connect_signals(self)
         
         self.videoPath = videoPath

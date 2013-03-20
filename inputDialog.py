@@ -5,13 +5,14 @@
 """
 
 import helpers
-import gtk, requests
+import gtk, requests, os.path
 from xml.dom.minidom import parseString
 
 class ChooseSeriesDialog(object):
     def __init__(self):
         self.builder = gtk.Builder()
-        self.builder.add_from_file("seriesChooserDialog.ui")
+        self.builder.add_from_file(os.path.join(os.path.split(os.path.realpath(__file__))[0], 
+                                        "seriesChooserDialog.ui"))
         self.builder.connect_signals(self)
         
         helpers.create_treeview_column(self.obj('tv_results'), 'Name', 0,
